@@ -3,18 +3,20 @@ const dirTree = require('directory-tree');
 
 import * as yargs from 'yargs';
 import {Helpers} from './Helpers';
-import * as fs from 'fs';
 import * as process from 'process';
 import * as console from 'console';
-import * as path from 'path';
 
 export class Logic {
     public static async downloadSecrets(argv: yargs.ArgumentsCamelCase) {
         await Helpers.spawnChildProcess('safe', ['target'], true);
         console.log('Grab data from vault...');
-        let result = await Helpers.spawnChildProcess('safe', ['export', argv.path.toString()]);
+        let result:any = await Helpers.spawnChildProcess('safe', ['export', argv.path.toString()]);
         console.log('Parse data...');
-        result = JSON.parse(result);
+        if (result === '') {
+            result = {};
+        } else {
+            result = JSON.parse(result );
+        }
 
         await fse.remove(process.cwd() + '/var/' + argv.path.toString());
 
@@ -27,9 +29,14 @@ export class Logic {
     public static async checkDiff(argv: yargs.ArgumentsCamelCase) {
         await Helpers.spawnChildProcess('safe', ['target'], true);
         console.log('Grab data from vault...');
-        let result = await Helpers.spawnChildProcess('safe', ['export', argv.path.toString()]);
+        let result: any = await Helpers.spawnChildProcess('safe', ['export', argv.path.toString()]);
         console.log('Parse data...');
-        result = JSON.parse(result);
+        if (result === '') {
+            result = {};
+        } else {
+            result = JSON.parse(result );
+        }
+
         //
         //
         // fse.writeJsonSync(process.cwd()+'/var/'+argv.path.toString()+'.json', result);
@@ -39,9 +46,15 @@ export class Logic {
         let localChanges = {};
         dirTree(process.cwd() + '/var/' + argv.path.toString(), {extensions:/\.json$/}, (item, PATH, stats) => {
             const secretPath = PATH.replace(process.cwd() + '/var/', '').replace('.json', '');
-            localChanges[secretPath] =  fse.readJsonSync(item.path);
+            try {
+                localChanges[secretPath] =  fse.readJsonSync(item.path);
+            } catch (error) {
+                console.error('Can not read file: ' + item.path);
+                console.error(error);
+                process.exit(0);
+            }
         });
-        console.log(deepDiffMapper.map(localChanges, result));
+        console.log(deepDiffMapper.map(result, localChanges));
 
     }
 
@@ -51,7 +64,13 @@ export class Logic {
         let localChanges = {};
         dirTree(process.cwd() + '/var/' + argv.path.toString(), {extensions:/\.json$/}, (item, PATH, stats) => {
             const secretPath = PATH.replace(process.cwd() + '/var/', '').replace('.json', '');
-            localChanges[secretPath] =  fse.readJsonSync(item.path);
+            try {
+                localChanges[secretPath] =  fse.readJsonSync(item.path);
+            } catch (error) {
+                console.error('Can not read file:' + item.path);
+                console.error(error);
+                process.exit(0);
+            }
 
         });
         console.log('Write to file...');
