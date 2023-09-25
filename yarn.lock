@@ -254,10 +254,10 @@
   resolved "https://registry.yarnpkg.com/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
   integrity sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
 
-"@types/tar-stream@^2.1.0":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-2.2.2.tgz#be9d0be9404166e4b114151f93e8442e6ab6fb1d"
-  integrity sha512-1AX+Yt3icFuU6kxwmPakaiGrJUwG44MpuiqPg4dSolRFk6jmvs4b3IbUol9wKDLIgU76gevn3EwE8y/DkSJCZQ==
+"@types/tar-stream@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-3.1.0.tgz#b67783c27135d21ed6a29e1f9e4a49f32debf741"
+  integrity sha512-U05c7l6K5VdO1ZV+j3E0NJOX1hfJB497M1+QT2rXx2QqyMbEQJqBw3Utk9eUVnWPyLLqYKt5Ja1kPV1ejm6cZw==
   dependencies:
     "@types/node" "*"
 
