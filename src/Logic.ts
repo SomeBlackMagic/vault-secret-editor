@@ -22,8 +22,21 @@ export class Logic {
 
         for (const [key, value] of Object.entries(result)) {
             console.log('write data to file: ./var/' + key + '.json');
-            Helpers.writeDataToFile(process.cwd() + '/var/' + key + '.json', JSON.stringify(value, null, 4));
+            Helpers.writeDataToFile(process.cwd() + '/var/' + key + '.json', JSON.stringify(value, Logic.nestedParse.bind(this), 4));
         }
+    }
+
+    private static nestedParse(key: string, value: any| Object): any {
+        if (key !== '') {
+            if (typeof value === 'string' && isNaN(parseInt(value))) {
+                try {
+                    return JSON.parse(value);
+                } catch (e) {
+                    return value;
+                }
+            }
+        }
+        return value;
     }
 
     public static async checkDiff(argv: yargs.ArgumentsCamelCase) {
@@ -34,7 +47,7 @@ export class Logic {
         if (result === '') {
             result = {};
         } else {
-            result = JSON.parse(result );
+            result = JSON.parse(result);
         }
 
         //
@@ -47,11 +60,11 @@ export class Logic {
         dirTree(process.cwd() + '/var/' + argv.path.toString(), {extensions:/\.json$/}, (item, PATH, stats) => {
             const secretPath = PATH.replace(process.cwd() + '/var/', '').replace('.json', '');
             try {
-                localChanges[secretPath] =  fse.readJsonSync(item.path);
+                localChanges[secretPath] = Helpers.readDataToFile(item.path);
             } catch (error) {
                 console.error('Can not read file: ' + item.path);
                 console.error(error);
-                process.exit(0);
+                process.exit(1);
             }
         });
         console.log(deepDiffMapper.map(result, localChanges));
@@ -65,7 +78,7 @@ export class Logic {
         dirTree(process.cwd() + '/var/' + argv.path.toString(), {extensions:/\.json$/}, (item, PATH, stats) => {
             const secretPath = PATH.replace(process.cwd() + '/var/', '').replace('.json', '');
             try {
-                localChanges[secretPath] =  fse.readJsonSync(item.path);
+                localChanges[secretPath] =  Helpers.readDataToFile(item.path);
             } catch (error) {
                 console.error('Can not read file:' + item.path);
                 console.error(error);
@@ -97,8 +110,8 @@ let deepDiffMapper = function () {
                 if (type === 'updated') {
                     return {
                         type: type,
-                        localValue: obj1,
-                        remoteValue: obj2,
+                        localValue: obj2,
+                        remoteValue: obj1,
                     };
                 }
                 if (type === 'unchanged') {
@@ -130,7 +143,6 @@ let deepDiffMapper = function () {
                 if (this.isFunction(obj2[key]) || diff[key] !== undefined) {
                     continue;
                 }
-
                 diff[key] = this.map(undefined, obj2[key]);
             }
 

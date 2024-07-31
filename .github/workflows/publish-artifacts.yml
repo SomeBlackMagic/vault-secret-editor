@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
@@ -24,7 +24,25 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: vault-secret-editor
-          asset_name: vault-secret-editor-linux-amd64
+          file: vault-secret-editor-linux
+          asset_name: vault-secret-editor-linux-x64
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: vault-secret-editor-win.exe
+          asset_name: vault-secret-editor-win-x64.exe
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: vault-secret-editor-macos
+          asset_name: vault-secret-editor-macos-x64
           tag: ${{ github.ref }}
           overwrite: true

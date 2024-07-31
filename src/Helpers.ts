@@ -1,4 +1,5 @@
 const filendir = require('filendir');
+const fse = require('fs-extra');
 import {spawn, exec} from 'child_process';
 
 export class Helpers {
@@ -102,8 +103,16 @@ export class Helpers {
         return await filendir.writeFile(filePath, data);
     }
 
-    public static async readDataToFile(filePath): Promise<string> {
-        return '';
-    }
+    public static readDataToFile(filePath): Object {
+        let content: Object = fse.readJsonSync(filePath);
+        for (const key in content) {
+            if (content.hasOwnProperty(key)) {
+                if (typeof content[key] === 'object' && content[key] !== null) {
+                    content[key] = JSON.stringify(content[key]);
+                }
+            }
+        }
 
+        return content;
+    }
 }
