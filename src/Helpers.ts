@@ -1,9 +1,9 @@
-import * as fs from "node:fs";
+import * as fs from 'node:fs';
 
 const filendir = require('filendir');
 const fse = require('fs-extra');
 import {spawn, exec} from 'child_process';
-import * as process from "node:process";
+import * as process from 'node:process';
 
 export class Helpers {
     public static async spawnChildProcess(command: string, args: string[], pipeLogs?: boolean, logPrefix?: string): Promise<string> {

@@ -1,14 +1,14 @@
 
 const dirTree = require('directory-tree');
-const util = require('util')
+const util = require('util');
 
 import * as yargs from 'yargs';
 import {Helpers} from './Helpers';
 import * as process from 'process';
 import * as console from 'console';
-import VaultUtility from "./VaultUtility";
-import * as fs from "node:fs";
-import * as crypto from "node:crypto";
+import VaultUtility from './VaultUtility';
+import * as fs from 'node:fs';
+import * as crypto from 'node:crypto';
 
 export class Logic {
     public static async downloadSecrets(argv: yargs.ArgumentsCamelCase) {
@@ -16,19 +16,19 @@ export class Logic {
         const vaultData = await VaultUtility.getAllKeys(argv.instance as string);
 
         for (const [key, value] of Object.entries(vaultData)) {
-            let filePath:string = process.cwd() + '/var/'+argv.instance+'/' + key + '.json'
+            let filePath:string = process.cwd() + '/var/' + argv.instance + '/' + key + '.json';
 
 
-            if(fs.existsSync(filePath)) {
+            if (fs.existsSync(filePath)) {
                 const localFileContent = Helpers.readDataFromFile(filePath);
 
                 const localFileContentHash  = crypto.createHash('md5').update(JSON.stringify(localFileContent), 'utf8').digest('hex');
                 const valueHash = crypto.createHash('md5').update(JSON.stringify(value), 'utf8').digest('hex');
 
                 if (localFileContentHash !== valueHash) {
-                    console.warn('Overwrite content for: ' + key)
+                    console.warn('Overwrite content for: ' + key);
                     const diff = deepDiffMapper.map(value, localFileContent);
-                    console.table(diff)
+                    console.table(diff);
                 }
 
 
@@ -57,7 +57,7 @@ export class Logic {
         await VaultUtility.changeContext(argv.instance as string);
         const vaultData = await VaultUtility.getAllKeys(argv.path as string);
 
-        const filePath:string = process.cwd() + '/var/'+argv.instance+'/';
+        const filePath:string = process.cwd() + '/var/' + argv.instance + '/';
 
         console.log('Fetch local changes...');
         let localChanges = {};
@@ -83,7 +83,7 @@ export class Logic {
 
         console.log('Fetch local changes...');
         let localChanges = {};
-        const filePath:string = process.cwd() + '/var/'+argv.instance+'/';
+        const filePath:string = process.cwd() + '/var/' + argv.instance + '/';
 
 
         dirTree(filePath + argv.path.toString(), {extensions:/\.json$/}, (item, PATH, stats) => {
@@ -99,10 +99,10 @@ export class Logic {
 
         const changes = deepDiffMapper.map(vaultData, localChanges);
 
-        if(changes.type === 'updated') {
+        if (changes.type === 'updated') {
             for (const [key, value] of Object.entries(changes.data)) {
                 // @ts-ignore
-                console.log('Key ' + key + ' -> ' + value?.type)
+                console.log('Key ' + key + ' -> ' + value?.type);
                 // @ts-ignore
                 switch (value?.type) {
                     case 'updated':

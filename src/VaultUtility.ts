@@ -1,13 +1,13 @@
-import {Helpers} from "./Helpers";
-import * as fs from "node:fs/promises";
+import {Helpers} from './Helpers';
+import * as fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import * as console from "node:console";
+import * as console from 'node:console';
 const fse = require('fs-extra');
 
 export default class VaultUtility {
 
-    private static openTempFiles: string[] = []
+    private static openTempFiles: string[] = [];
 
     private static readonly TMP_PREFIX: string = 'vault-secret-editor-';
 
@@ -27,19 +27,19 @@ export default class VaultUtility {
 
 
     public static async writeChangesToTempFile(targetName: string, key: string, data: any|object ) {
-        if(!VaultUtility.openTempFiles.includes(targetName)) {
-            VaultUtility.openTempFiles[targetName] = await fs.mkdtemp(join(tmpdir(), VaultUtility.TMP_PREFIX+targetName+'-', ));
-            await fs.writeFile(VaultUtility.openTempFiles[targetName]+'/data.json', '{}');
+        if (!VaultUtility.openTempFiles.includes(targetName)) {
+            VaultUtility.openTempFiles[targetName] = await fs.mkdtemp(join(tmpdir(), VaultUtility.TMP_PREFIX + targetName + '-', ));
+            await fs.writeFile(VaultUtility.openTempFiles[targetName] + '/data.json', '{}');
         }
-        const tempFileName = VaultUtility.openTempFiles[targetName]+'/data.json';
+        const tempFileName = VaultUtility.openTempFiles[targetName] + '/data.json';
         let fileContent: Object = fse.readJsonSync(tempFileName);
-        fileContent[key] = data
+        fileContent[key] = data;
         fse.writeJsonSync(tempFileName, fileContent);
     }
 
     public static async flushData(targetName: string): Promise<void> {
-        if( typeof VaultUtility.openTempFiles[targetName]!== 'undefined') {
-            await Helpers.execChildProcess('safe import < ' + VaultUtility.openTempFiles[targetName]+'/data.json', true);
+        if ( typeof VaultUtility.openTempFiles[targetName] !== 'undefined') {
+            await Helpers.execChildProcess('safe import < ' + VaultUtility.openTempFiles[targetName] + '/data.json', true);
         }
     }
 

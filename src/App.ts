@@ -45,7 +45,7 @@ import {Logic} from './Logic';
                     describe: 'path in vault to download',
                     type: 'string',
                     demandOption: true
-                })
+                });
         }, Logic.checkDiff.bind(this))
         .command('apply [instance] [path]', 'apply local changes to remote vault', (yargs) => {
             return yargs
@@ -58,7 +58,7 @@ import {Logic} from './Logic';
                     describe: 'path in vault to download',
                     type: 'string',
                     demandOption: true
-                })
+                });
         }, Logic.applyChanges.bind(this))
 
 
@@ -67,8 +67,8 @@ import {Logic} from './Logic';
             type: 'boolean',
             description: 'Run with verbose logging'
         })
-        //.demandCommand(1, 'You need to specify a command')
-        //.help()
+        // .demandCommand(1, 'You need to specify a command')
+        // .help()
         .parse();
 
 
