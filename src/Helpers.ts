@@ -1,6 +1,9 @@
+import * as fs from "node:fs";
+
 const filendir = require('filendir');
 const fse = require('fs-extra');
 import {spawn, exec} from 'child_process';
+import * as process from "node:process";
 
 export class Helpers {
     public static async spawnChildProcess(command: string, args: string[], pipeLogs?: boolean, logPrefix?: string): Promise<string> {
@@ -98,6 +101,19 @@ export class Helpers {
         });
     }
 
+
+
+    public static readDataFromFile(filePath: string) {
+        const data = fs.readFileSync(filePath, 'utf8');
+        try {
+            return JSON.parse(data);
+        } catch (error) {
+            console.error('Can not parse data from file: ' + filePath);
+            console.error(data);
+            process.exit(1);
+        }
+
+    }
 
     public static async writeDataToFile(filePath, data) {
         return await filendir.writeFile(filePath, data);

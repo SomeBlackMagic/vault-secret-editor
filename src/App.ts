@@ -9,26 +9,56 @@ import {Logic} from './Logic';
 
     const argv: any = yargs(hideBin(process.argv))
         .version('dev-dirty')
-        .command('download [path]', 'download all changes(by key) to local fs', (yargs) => {
+        .command(
+            'download [instance] [path]',
+            'download all changes(by key) to local fs',
+            (yargs) => {
+                return yargs
+                    .positional('instance', {
+                        describe: 'safe connection name',
+                        type: 'string',
+                        demandOption: true
+                    })
+                    .positional('path', {
+                        describe: 'path in vault to download',
+                        type: 'string',
+                        demandOption: true
+                    })
+
+                    .option('clean-space', {
+                        type: 'boolean',
+                        alias: 'c',
+                        describe: 'Remove local files before downloading',
+                    })
+                    .strict();
+                },
+            Logic.downloadSecrets.bind(this)
+        )
+        .command('checkDiff [instance] [path]', 'display diff about local and remote changes', (yargs) => {
             return yargs
-                .positional('path', {
-                    describe: 'path to download',
+                .positional('instance', {
+                    describe: 'safe connection name',
                     type: 'string',
-                });
-        }, Logic.downloadSecrets.bind(this))
-        .command('checkDiff [path]', 'display diff about local and remote changes', (yargs) => {
-            return yargs
+                    demandOption: true
+                })
                 .positional('path', {
-                    describe: 'path to download',
+                    describe: 'path in vault to download',
                     type: 'string',
-                });
+                    demandOption: true
+                })
         }, Logic.checkDiff.bind(this))
-        .command('apply [path]', 'apply local changes to remote vault', (yargs) => {
+        .command('apply [instance] [path]', 'apply local changes to remote vault', (yargs) => {
             return yargs
-                .positional('path', {
-                    describe: 'path to download',
+                .positional('instance', {
+                    describe: 'safe connection name',
                     type: 'string',
-                });
+                    demandOption: true
+                })
+                .positional('path', {
+                    describe: 'path in vault to download',
+                    type: 'string',
+                    demandOption: true
+                })
         }, Logic.applyChanges.bind(this))
 
 
@@ -37,8 +67,9 @@ import {Logic} from './Logic';
             type: 'boolean',
             description: 'Run with verbose logging'
         })
+        //.demandCommand(1, 'You need to specify a command')
+        //.help()
         .parse();
-    // console.log(argv);
 
 
 })();
