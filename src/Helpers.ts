@@ -1,9 +1,12 @@
-import * as fs from 'node:fs';
 
-const filendir = require('filendir');
-const fse = require('fs-extra');
-import {spawn, exec} from 'child_process';
+import {exec, spawn} from 'child_process';
 import * as process from 'node:process';
+import VaultNormalizer from './VaultNormalizer';
+import * as path from 'node:path';
+import * as fse from 'fs-extra';
+
+// const filendir = require('filendir');
+// const fse = require('fs-extra');
 
 export class Helpers {
     public static async spawnChildProcess(command: string, args: string[], pipeLogs?: boolean, logPrefix?: string): Promise<string> {
@@ -103,32 +106,134 @@ export class Helpers {
 
 
 
-    public static readDataFromFile(filePath: string) {
-        const data = fs.readFileSync(filePath, 'utf8');
-        try {
-            return JSON.parse(data);
-        } catch (error) {
-            console.error('Can not parse data from file: ' + filePath);
-            console.error(data);
-            process.exit(1);
-        }
+    public static async writeJsonFile(filePath:string, data: Object): Promise<any> {
+        const dir = path.dirname(filePath);
+        await fse.ensureDir(dir);
 
+        return fse.writeJson(filePath, data, {
+            replacer: VaultNormalizer.denormilize.bind(this),
+            spaces: 4
+        });
     }
 
-    public static async writeDataToFile(filePath, data) {
-        return await filendir.writeFile(filePath, data);
-    }
 
-    public static readDataToFile(filePath): Object {
-        let content: Object = fse.readJsonSync(filePath);
-        for (const key in content) {
-            if (content.hasOwnProperty(key)) {
-                if (typeof content[key] === 'object' && content[key] !== null) {
-                    content[key] = JSON.stringify(content[key]);
-                }
-            }
-        }
+    public static async readJsonFile(filePath: string): Promise<Object> {
+        const result =  await fse.readJson(filePath);
+        return VaultNormalizer.normilize(result);
 
-        return content;
     }
 }
+
+export let deepDiffMapper = function () {
+    return {
+        VALUE_CREATED: 'created',
+        VALUE_UPDATED: 'updated',
+        VALUE_DELETED: 'deleted',
+        VALUE_UNCHANGED: 'unchanged',
+
+        map: function(obj1, obj2): {type: string, localValue?: any, remoteValue?: any, data?: any|object }  {
+            if (this.isFunction(obj1) || this.isFunction(obj2)) {
+                throw 'Invalid argument. Function given, object expected.';
+            }
+            if (this.isValue(obj1) || this.isValue(obj2)) {
+                const type = this.compareValues(obj1, obj2);
+                if (type === this.VALUE_UPDATED) {
+                    return {
+                        type: type,
+                        localValue: obj2,
+                        remoteValue: obj1,
+                    };
+                }
+                if (type === this.VALUE_UNCHANGED) {
+                    return {
+                        type: type
+                    };
+                }
+
+                return {
+                    type: type,
+                    data: obj1 === undefined ? obj2 : obj1,
+                };
+            }
+
+            let diff = {};
+            let hasChanges = false;
+
+            for (let key in obj1) {
+                if (this.isFunction(obj1[key])) {
+                    continue;
+                }
+
+                let value2 = obj2 !== undefined ? obj2[key] : undefined;
+
+                let childDiff = this.map(obj1[key], value2);
+                diff[key] = childDiff;
+
+                if (childDiff.type !== this.VALUE_UNCHANGED) {
+                    hasChanges = true;
+                }
+            }
+
+            for (let key in obj2) {
+                if (this.isFunction(obj2[key]) || diff[key] !== undefined) {
+                    continue;
+                }
+
+                let childDiff = this.map(undefined, obj2[key]);
+                diff[key] = childDiff;
+
+                if (childDiff.type !== this.VALUE_UNCHANGED) {
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges) {
+                return {
+                    type: this.VALUE_UPDATED,
+                    data: diff
+                };
+            } else {
+                return {
+                    type: this.VALUE_UNCHANGED,
+                    // data:
+                };
+            }
+        },
+
+        compareValues: function (value1, value2) {
+            if (value1 === value2) {
+                return this.VALUE_UNCHANGED;
+            }
+            if (this.isDate(value1) && this.isDate(value2) && value1.getTime() === value2.getTime()) {
+                return this.VALUE_UNCHANGED;
+            }
+            if (value1 === undefined) {
+                return this.VALUE_CREATED;
+            }
+            if (value2 === undefined) {
+                return this.VALUE_DELETED;
+            }
+            return this.VALUE_UPDATED;
+        },
+
+        isFunction: function (x) {
+            return Object.prototype.toString.call(x) === '[object Function]';
+        },
+
+        isArray: function (x) {
+            return Object.prototype.toString.call(x) === '[object Array]';
+        },
+
+        isDate: function (x) {
+            return Object.prototype.toString.call(x) === '[object Date]';
+        },
+
+        isObject: function (x) {
+            return Object.prototype.toString.call(x) === '[object Object]';
+        },
+
+        isValue: function (x) {
+            return !this.isObject(x) && !this.isArray(x);
+        }
+    };
+}();

@@ -3,11 +3,11 @@ import * as fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as console from 'node:console';
-const fse = require('fs-extra');
+import * as fse from 'fs-extra';
 
 export default class VaultUtility {
 
-    private static openTempFiles: string[] = [];
+    private static openTempFile: string|false = false;
 
     private static readonly TMP_PREFIX: string = 'vault-secret-editor-';
 
@@ -27,19 +27,23 @@ export default class VaultUtility {
 
 
     public static async writeChangesToTempFile(targetName: string, key: string, data: any|object ) {
-        if (!VaultUtility.openTempFiles.includes(targetName)) {
-            VaultUtility.openTempFiles[targetName] = await fs.mkdtemp(join(tmpdir(), VaultUtility.TMP_PREFIX + targetName + '-', ));
-            await fs.writeFile(VaultUtility.openTempFiles[targetName] + '/data.json', '{}');
+
+        if (VaultUtility.openTempFile === false) {
+            VaultUtility.openTempFile = await fs.mkdtemp(join(tmpdir(), VaultUtility.TMP_PREFIX + targetName + '-', ));
+            await fse.writeJson(VaultUtility.openTempFile + '/data.json', {});
         }
-        const tempFileName = VaultUtility.openTempFiles[targetName] + '/data.json';
-        let fileContent: Object = fse.readJsonSync(tempFileName);
+        const tempFileName = VaultUtility.openTempFile + '/data.json';
+        let fileContent: Object = await fse.readJson(tempFileName);
         fileContent[key] = data;
-        fse.writeJsonSync(tempFileName, fileContent);
+        await fse.writeJson(tempFileName, fileContent);
     }
 
     public static async flushData(targetName: string): Promise<void> {
-        if ( typeof VaultUtility.openTempFiles[targetName] !== 'undefined') {
-            await Helpers.execChildProcess('safe import < ' + VaultUtility.openTempFiles[targetName] + '/data.json', true);
+        console.log('Flushing updates...');
+        if (VaultUtility.openTempFile !== false) {
+            await Helpers.execChildProcess('safe import < ' + VaultUtility.openTempFile + '/data.json', true);
+        } else {
+            console.log('Nothing to update or create');
         }
     }
 
