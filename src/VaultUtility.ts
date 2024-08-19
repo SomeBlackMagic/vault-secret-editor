@@ -12,7 +12,7 @@ export default class VaultUtility {
     private static readonly TMP_PREFIX: string = 'vault-secret-editor-';
 
     public static async changeContext(targetName: string): Promise<void> {
-        await Helpers.spawnChildProcess('safe', ['target', targetName], true, 'safe');
+        await Helpers.spawnChildProcess('safe', ['target', targetName], true);
     }
 
     public static async getAllKeys(key: string): Promise<object> {

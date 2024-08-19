@@ -5,31 +5,33 @@ import VaultNormalizer from './VaultNormalizer';
 import * as path from 'node:path';
 import * as fse from 'fs-extra';
 
-// const filendir = require('filendir');
-// const fse = require('fs-extra');
+const debug = require('debug')('helpers');
 
 export class Helpers {
-    public static async spawnChildProcess(command: string, args: string[], pipeLogs?: boolean, logPrefix?: string): Promise<string> {
+    public static async spawnChildProcess(command: string, args: string[], pipeLogs: boolean = false, logPrefix: string = ''): Promise<string> {
+        debug("SpawnChildProcess: " + command + " " + args.join(' '));
         return new Promise<any>((resolve, reject) => {
+
             const process = spawn(command, args.filter((item) => {
                 return item !== '';
             }));
             let stdout: string = '';
+            process.stderr.on('data', (arrayBuffer) => {
+                const data = Buffer.from(arrayBuffer, 'utf-8').toString().split('\n');
+                data.forEach((item, index) => {
+                    if (item !== '' && item !== "\r") {
+                        require('debug')('helpers:spawnChildProcess:'+ (logPrefix === '' ? command : logPrefix) + ':stderr')(item.replace(/(?:\\[rn]|[\r\n]+)+/g, ""));
+                    }
+                });
+
+            });
+
             if (pipeLogs === true) {
                 process.stdout.on('data', (arrayBuffer) => {
                     const data = Buffer.from(arrayBuffer, 'utf-8').toString().split('\n');
                     data.forEach((item, index) => {
                         if (item !== '') {
                             console.log(logPrefix + ' ' + item);
-                        }
-                    });
-
-                });
-                process.stderr.on('data', (arrayBuffer) => {
-                    const data = Buffer.from(arrayBuffer, 'utf-8').toString().split('\n');
-                    data.forEach((item, index) => {
-                        if (item !== '') {
-                            console.error(item);
                         }
                     });
 
@@ -58,6 +60,7 @@ export class Helpers {
         });
     }
     public static async execChildProcess(command: string, pipeLogs?: boolean, logPrefix?: string): Promise<string> {
+
         return new Promise<any>((resolve, reject) => {
             const process = exec(command);
             let stdout: string = '';
