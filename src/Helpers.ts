@@ -202,8 +202,15 @@ export let deepDiffMapper = function () {
                 };
             }
         },
-
+        isBoolean: function(obj) {
+            return obj === true || obj === false || obj === 'true' || obj === 'false';
+        },
         compareValues: function (value1, value2) {
+            if(this.isBoolean(value1) || this.isBoolean(value2)) {
+                if(value1.toString() === value2.toString()) {
+                    return this.VALUE_UNCHANGED;
+                }
+            }
             if (value1 === value2) {
                 return this.VALUE_UNCHANGED;
             }
