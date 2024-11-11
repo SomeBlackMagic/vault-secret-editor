@@ -22,10 +22,10 @@ export default class VaultNormalizer {
             }
             // https://github.com/Qarik-Group/safe/issues/238
             if (content[key] === false) {
-                content[key] = 'false'
+                content[key] = 'false';
             }
             if (content[key] === true) {
-                content[key] = 'true'
+                content[key] = 'true';
             }
 
         }

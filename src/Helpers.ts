@@ -9,7 +9,7 @@ const debug = require('debug')('helpers');
 
 export class Helpers {
     public static async spawnChildProcess(command: string, args: string[], pipeLogs: boolean = false, logPrefix: string = ''): Promise<string> {
-        debug("SpawnChildProcess: " + command + " " + args.join(' '));
+        debug('SpawnChildProcess: ' + command + ' ' + args.join(' '));
         return new Promise<any>((resolve, reject) => {
 
             const process = spawn(command, args.filter((item) => {
@@ -19,8 +19,8 @@ export class Helpers {
             process.stderr.on('data', (arrayBuffer) => {
                 const data = Buffer.from(arrayBuffer, 'utf-8').toString().split('\n');
                 data.forEach((item, index) => {
-                    if (item !== '' && item !== "\r") {
-                        require('debug')('helpers:spawnChildProcess:'+ (logPrefix === '' ? command : logPrefix) + ':stderr')(item.replace(/(?:\\[rn]|[\r\n]+)+/g, ""));
+                    if (item !== '' && item !== '\r') {
+                        require('debug')('helpers:spawnChildProcess:' + (logPrefix === '' ? command : logPrefix) + ':stderr')(item.replace(/(?:\\[rn]|[\r\n]+)+/g, ''));
                     }
                 });
 
@@ -206,8 +206,8 @@ export let deepDiffMapper = function () {
             return obj === true || obj === false || obj === 'true' || obj === 'false';
         },
         compareValues: function (value1, value2) {
-            if(this.isBoolean(value1) || this.isBoolean(value2)) {
-                if(value1.toString() === value2.toString()) {
+            if (this.isBoolean(value1) || this.isBoolean(value2)) {
+                if (value1.toString() === value2.toString()) {
                     return this.VALUE_UNCHANGED;
                 }
             }
