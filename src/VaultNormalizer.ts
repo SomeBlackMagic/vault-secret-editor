@@ -20,6 +20,14 @@ export default class VaultNormalizer {
                     content[key] = JSON.stringify(content[key]);
                 }
             }
+            // https://github.com/Qarik-Group/safe/issues/238
+            if (content[key] === false) {
+                content[key] = 'false'
+            }
+            if (content[key] === true) {
+                content[key] = 'true'
+            }
+
         }
 
         return content;

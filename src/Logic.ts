@@ -24,9 +24,11 @@ export class Logic {
                 const valueHash = crypto.createHash('md5').update(JSON.stringify(value), 'utf8').digest('hex');
 
                 if (localFileContentHash !== valueHash) {
-                    console.warn('Overwrite content for: ' + key);
                     const diff = deepDiffMapper.map(value, localFileContent);
-                    console.table(diff.data);
+                    if (diff.type !== 'unchanged') {
+                        console.warn('Overwrite content for: ' + key);
+                        console.table(diff.data);
+                    }
                 }
             }
             console.log('Write content to: ' + filePath);
