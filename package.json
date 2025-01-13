@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/chai": "^4.3.5",
     "@types/debug": "^4.1.8",
-    "@types/dotenv": "^8.2.0",
+    "@types/dotenv": "^8.2.3",
     "@types/fs-extra": "^11.0.4",
     "@types/mocha": "^10.0.1",
     "@types/tar-stream": "^2.1.0",
