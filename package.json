@@ -28,7 +28,7 @@
     "mocha": "^10.2.0",
     "node-loader": "^0.6.0",
     "pkg": "^5.8.1",
-    "standard": "^17.1.0",
+    "standard": "^17.1.2",
     "ts-loader": "^8.0.10",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
