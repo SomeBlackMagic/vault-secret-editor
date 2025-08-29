@@ -1,6 +1,6 @@
 
 import {hideBin} from 'yargs/helpers';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import * as process from 'process';
 import {Logic} from './Logic';
 

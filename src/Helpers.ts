@@ -127,123 +127,133 @@ export class Helpers {
     }
 }
 
-export let deepDiffMapper = function () {
-    return {
-        VALUE_CREATED: 'created',
-        VALUE_UPDATED: 'updated',
-        VALUE_DELETED: 'deleted',
-        VALUE_UNCHANGED: 'unchanged',
 
-        map: function(obj1, obj2): {type: string, localValue?: any, remoteValue?: any, data?: any|object }  {
-            if (this.isFunction(obj1) || this.isFunction(obj2)) {
-                throw 'Invalid argument. Function given, object expected.';
-            }
-            if (this.isValue(obj1) || this.isValue(obj2)) {
-                const type = this.compareValues(obj1, obj2);
-                if (type === this.VALUE_UPDATED) {
-                    return {
-                        type: type,
-                        localValue: obj2,
-                        remoteValue: obj1,
-                    };
-                }
-                if (type === this.VALUE_UNCHANGED) {
-                    return {
-                        type: type
-                    };
-                }
+export enum DiffType {
+    CREATED = 'created',
+    UPDATED = 'updated',
+    DELETED = 'deleted',
+    UNCHANGED = 'unchanged'
+}
 
+export interface DiffResult {
+    type: DiffType;
+    localValue?: any;
+    remoteValue?: any;
+    data?: any | object;
+}
+
+export class DeepDiffMapper {
+
+    public map(obj1: any, obj2: any): DiffResult {
+        if (this.isFunction(obj1) || this.isFunction(obj2)) {
+            throw new Error('Invalid argument. Function given, object expected.');
+        }
+
+        if (this.isValue(obj1) || this.isValue(obj2)) {
+            const type = this.compareValues(obj1, obj2);
+
+            if (type === DiffType.UPDATED) {
                 return {
                     type: type,
-                    data: obj1 === undefined ? obj2 : obj1,
+                    localValue: obj2,
+                    remoteValue: obj1,
                 };
             }
 
-            let diff = {};
-            let hasChanges = false;
-
-            for (let key in obj1) {
-                if (this.isFunction(obj1[key])) {
-                    continue;
-                }
-
-                let value2 = obj2 !== undefined ? obj2[key] : undefined;
-
-                let childDiff = this.map(obj1[key], value2);
-                diff[key] = childDiff;
-
-                if (childDiff.type !== this.VALUE_UNCHANGED) {
-                    hasChanges = true;
-                }
+            if (type === DiffType.UNCHANGED) {
+                return { type: type };
             }
 
-            for (let key in obj2) {
-                if (this.isFunction(obj2[key]) || diff[key] !== undefined) {
-                    continue;
-                }
-
-                let childDiff = this.map(undefined, obj2[key]);
-                diff[key] = childDiff;
-
-                if (childDiff.type !== this.VALUE_UNCHANGED) {
-                    hasChanges = true;
-                }
-            }
-
-            if (hasChanges) {
-                return {
-                    type: this.VALUE_UPDATED,
-                    data: diff
-                };
-            } else {
-                return {
-                    type: this.VALUE_UNCHANGED,
-                    // data:
-                };
-            }
-        },
-        isBoolean: function(obj) {
-            return obj === true || obj === false || obj === 'true' || obj === 'false';
-        },
-        compareValues: function (value1, value2) {
-            if (this.isBoolean(value1) || this.isBoolean(value2)) {
-                if (value1.toString() === value2.toString()) {
-                    return this.VALUE_UNCHANGED;
-                }
-            }
-            if (value1 === value2) {
-                return this.VALUE_UNCHANGED;
-            }
-            if (this.isDate(value1) && this.isDate(value2) && value1.getTime() === value2.getTime()) {
-                return this.VALUE_UNCHANGED;
-            }
-            if (value1 === undefined) {
-                return this.VALUE_CREATED;
-            }
-            if (value2 === undefined) {
-                return this.VALUE_DELETED;
-            }
-            return this.VALUE_UPDATED;
-        },
-
-        isFunction: function (x) {
-            return Object.prototype.toString.call(x) === '[object Function]';
-        },
-
-        isArray: function (x) {
-            return Object.prototype.toString.call(x) === '[object Array]';
-        },
-
-        isDate: function (x) {
-            return Object.prototype.toString.call(x) === '[object Date]';
-        },
-
-        isObject: function (x) {
-            return Object.prototype.toString.call(x) === '[object Object]';
-        },
-
-        isValue: function (x) {
-            return !this.isObject(x) && !this.isArray(x);
+            return {
+                type: type,
+                data: obj1 === undefined ? obj2 : obj1,
+            };
         }
-    };
-}();
+
+        const diff: { [key: string]: DiffResult } = {};
+        let hasChanges = false;
+
+        for (const key in obj1) {
+            if (this.isFunction(obj1[key])) {
+                continue;
+            }
+
+            const value2 = obj2 !== undefined ? obj2[key] : undefined;
+            const childDiff = this.map(obj1[key], value2);
+            diff[key] = childDiff;
+
+            if (childDiff.type !== DiffType.UNCHANGED) {
+                hasChanges = true;
+            }
+        }
+
+        for (const key in obj2) {
+            if (this.isFunction(obj2[key]) || diff[key] !== undefined) {
+                continue;
+            }
+
+            const childDiff = this.map(undefined, obj2[key]);
+            diff[key] = childDiff;
+
+            if (childDiff.type !== DiffType.UNCHANGED) {
+                hasChanges = true;
+            }
+        }
+
+        return hasChanges
+            ? { type: DiffType.UPDATED, data: diff }
+            : { type: DiffType.UNCHANGED };
+    }
+
+    private isBoolean(obj: any): boolean {
+        return obj === true || obj === false || obj === 'true' || obj === 'false';
+    }
+
+    private compareValues(value1: any, value2: any): DiffType {
+        if (value1 === undefined) {
+            return DiffType.CREATED;
+        }
+
+        if (value2 === undefined) {
+            return DiffType.DELETED;
+        }
+
+        if (this.isBoolean(value1) || this.isBoolean(value2)) {
+            if (value1.toString() === value2.toString()) {
+                return DiffType.UNCHANGED;
+            }
+        }
+
+        if (value1 === value2) {
+            return DiffType.UNCHANGED;
+        }
+
+        if (this.isDate(value1) && this.isDate(value2) && value1.getTime() === value2.getTime()) {
+            return DiffType.UNCHANGED;
+        }
+
+        return DiffType.UPDATED;
+    }
+
+    private isFunction(x: any): boolean {
+        return Object.prototype.toString.call(x) === '[object Function]';
+    }
+
+    private isArray(x: any): boolean {
+        return Object.prototype.toString.call(x) === '[object Array]';
+    }
+
+    private isDate(x: any): boolean {
+        return Object.prototype.toString.call(x) === '[object Date]';
+    }
+
+    private isObject(x: any): boolean {
+        return Object.prototype.toString.call(x) === '[object Object]';
+    }
+
+    private isValue(x: any): boolean {
+        return !this.isObject(x) && !this.isArray(x);
+    }
+}
+
+export const deepDiffMapper = new DeepDiffMapper();
