@@ -1,6 +1,6 @@
 // Helpers.test.ts
 import {expect} from 'chai';
-import {DeepDiffMapper, DiffType} from "@VaultSecretEditor/Helpers";
+import {DeepDiffMapper, DiffType} from '../../src/utils/diff';
 
 
 describe('DeepDiffMapper', () => {
