@@ -2,7 +2,9 @@
 import {hideBin} from 'yargs/helpers';
 import yargs from 'yargs';
 import * as process from 'process';
-import {Logic} from './Logic';
+import {downloadSecrets} from './commands/download';
+import {checkDiff} from './commands/checkDiff';
+import {applyChanges} from './commands/apply';
 
 
 (async () => {
@@ -32,7 +34,7 @@ import {Logic} from './Logic';
                     })
                     .strict();
                 },
-            Logic.downloadSecrets.bind(this)
+            downloadSecrets
         )
         .command('checkDiff [instance] [path]', 'display diff about local and remote changes', (yargs) => {
             return yargs
@@ -46,7 +48,7 @@ import {Logic} from './Logic';
                     type: 'string',
                     demandOption: true
                 });
-        }, Logic.checkDiff.bind(this))
+        }, checkDiff)
         .command('apply [instance] [path]', 'apply local changes to remote vault', (yargs) => {
             return yargs
                 .positional('instance', {
@@ -59,7 +61,7 @@ import {Logic} from './Logic';
                     type: 'string',
                     demandOption: true
                 });
-        }, Logic.applyChanges.bind(this))
+        }, applyChanges)
 
 
         .option('verbose', {
@@ -73,7 +75,3 @@ import {Logic} from './Logic';
 
 
 })();
-
-
-
-
